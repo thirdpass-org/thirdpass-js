@@ -1,7 +1,7 @@
-# vouch-js
+# thirdpass-js
 
-JavaScript package extension for Vouch.
+JavaScript package extension for Thirdpass.
 
-This repo contains the Vouch extension that understands npm packages and
-JavaScript dependency files. It can be used by the Vouch CLI to discover
+This repo contains the Thirdpass extension that understands npm packages and
+JavaScript dependency files. It can be used by the Thirdpass CLI to discover
 JavaScript dependencies and fetch package metadata from npm.

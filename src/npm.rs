@@ -6,13 +6,15 @@ static HOST_NAME: &str = "npmjs.com";
 /// Parse and clean package version string.
 ///
 /// Returns a structure which details common errors.
-fn get_parsed_version(version: &Option<&str>) -> vouch_lib::extension::common::VersionParseResult {
+fn get_parsed_version(
+    version: &Option<&str>,
+) -> thirdpass_lib::extension::common::VersionParseResult {
     if let Some(version) = version.and_then(|v| Some(v.to_string())) {
         if version != "" {
             return Ok(version);
         }
     }
-    Err(vouch_lib::extension::common::VersionError::from_missing_version())
+    Err(thirdpass_lib::extension::common::VersionError::from_missing_version())
 }
 
 type JsonObject = serde_json::Map<String, serde_json::Value>;
@@ -20,7 +22,7 @@ type JsonObject = serde_json::Map<String, serde_json::Value>;
 fn parse_dependencies(
     package_entry: &serde_json::Value,
     include_dev_dependencies: bool,
-) -> Result<Vec<vouch_lib::extension::Dependency>> {
+) -> Result<Vec<thirdpass_lib::extension::Dependency>> {
     let mut unprocessed_dependencies_sections: std::collections::VecDeque<&JsonObject> =
         std::collections::VecDeque::new();
 
@@ -36,7 +38,7 @@ fn parse_dependencies(
             }
 
             let version_parse_result = get_parsed_version(&entry["version"].as_str());
-            all_dependencies.insert(vouch_lib::extension::Dependency {
+            all_dependencies.insert(thirdpass_lib::extension::Dependency {
                 name: package_name.clone(),
                 version: version_parse_result,
             });
@@ -56,7 +58,7 @@ fn parse_dependencies(
 pub fn get_dependencies(
     file_path: &std::path::PathBuf,
     include_dev_dependencies: bool,
-) -> Result<Vec<vouch_lib::extension::Dependency>> {
+) -> Result<Vec<thirdpass_lib::extension::Dependency>> {
     let file = std::fs::File::open(file_path)?;
     let reader = std::io::BufReader::new(file);
     let package_entry: serde_json::Value = serde_json::from_reader(reader).context(format!(

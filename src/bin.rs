@@ -1,7 +1,7 @@
-use vouch_js_lib;
-use vouch_lib::extension::FromLib;
+use thirdpass_js_lib;
+use thirdpass_lib::extension::FromLib;
 
 fn main() {
-    let mut extension = vouch_js_lib::JsExtension::new();
-    vouch_lib::extension::commands::run(&mut extension).unwrap();
+    let mut extension = thirdpass_js_lib::JsExtension::new();
+    thirdpass_lib::extension::commands::run(&mut extension).unwrap();
 }
