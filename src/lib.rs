@@ -11,7 +11,7 @@ pub struct JsExtension {
     registry_human_url_template_: String,
 }
 
-impl thirdpass_lib::extension::FromLib for JsExtension {
+impl thirdpass_core::extension::FromLib for JsExtension {
     fn new() -> Self {
         Self {
             name_: "js".to_string(),
@@ -22,7 +22,7 @@ impl thirdpass_lib::extension::FromLib for JsExtension {
     }
 }
 
-impl thirdpass_lib::extension::Extension for JsExtension {
+impl thirdpass_core::extension::Extension for JsExtension {
     fn name(&self) -> String {
         self.name_.clone()
     }
@@ -39,7 +39,7 @@ impl thirdpass_lib::extension::Extension for JsExtension {
         package_name: &str,
         package_version: &Option<&str>,
         _extension_args: &Vec<String>,
-    ) -> Result<Vec<thirdpass_lib::extension::PackageDependencies>> {
+    ) -> Result<Vec<thirdpass_core::extension::PackageDependencies>> {
         // npm install is-even@1.0.0 --package-lock-only
         let tmp_dir = tempdir::TempDir::new("thirdpass_js_identify_package_dependencies")?;
         let tmp_directory_path = tmp_dir.path().to_path_buf();
@@ -67,7 +67,7 @@ impl thirdpass_lib::extension::Extension for JsExtension {
         let dependencies = npm::get_dependencies(&package_lock_path, false)?;
 
         let package_version = if let Some(package_version) = package_version {
-            thirdpass_lib::extension::VersionParseResult::Ok(package_version.to_string())
+            thirdpass_core::extension::VersionParseResult::Ok(package_version.to_string())
         } else {
             // Extract target package version from dependencies so as to remove from the dependencies vector.
             let mut target_package_instances: Vec<_> = dependencies
@@ -88,7 +88,7 @@ impl thirdpass_lib::extension::Extension for JsExtension {
             .filter(|d| d.name != package_name && d.version != package_version)
             .collect();
 
-        Ok(vec![thirdpass_lib::extension::PackageDependencies {
+        Ok(vec![thirdpass_core::extension::PackageDependencies {
             package_version: package_version,
             registry_host_name: npm::get_registry_host_name(),
             dependencies: dependencies,
@@ -99,7 +99,7 @@ impl thirdpass_lib::extension::Extension for JsExtension {
         &self,
         working_directory: &std::path::PathBuf,
         extension_args: &Vec<String>,
-    ) -> Result<Vec<thirdpass_lib::extension::FileDefinedDependencies>> {
+    ) -> Result<Vec<thirdpass_core::extension::FileDefinedDependencies>> {
         let include_dev_dependencies = extension_args.iter().any(|v| v == "--dev");
 
         // Identify all dependency definition files.
@@ -118,7 +118,7 @@ impl thirdpass_lib::extension::Extension for JsExtension {
                     npm::get_registry_host_name(),
                 ),
             };
-            all_dependency_specs.push(thirdpass_lib::extension::FileDefinedDependencies {
+            all_dependency_specs.push(thirdpass_core::extension::FileDefinedDependencies {
                 path: dependency_file.path,
                 registry_host_name: registry_host_name,
                 dependencies: dependencies,
@@ -132,7 +132,7 @@ impl thirdpass_lib::extension::Extension for JsExtension {
         &self,
         package_name: &str,
         package_version: &Option<&str>,
-    ) -> Result<Vec<thirdpass_lib::extension::RegistryPackageMetadata>> {
+    ) -> Result<Vec<thirdpass_core::extension::RegistryPackageMetadata>> {
         let package_version = match package_version {
             Some(v) => Some(v.to_string()),
             None => get_latest_version(&package_name)?,
@@ -154,7 +154,7 @@ impl thirdpass_lib::extension::Extension for JsExtension {
         let entry_json = get_registry_entry_json(&package_name)?;
         let artifact_url = get_archive_url(&entry_json, &package_version)?;
 
-        Ok(vec![thirdpass_lib::extension::RegistryPackageMetadata {
+        Ok(vec![thirdpass_core::extension::RegistryPackageMetadata {
             registry_host_name: registry_host_name,
             human_url: human_url.to_string(),
             artifact_url: artifact_url.to_string(),
