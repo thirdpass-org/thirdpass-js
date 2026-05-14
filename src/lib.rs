@@ -276,3 +276,82 @@ fn identify_dependency_files(
     }
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use thirdpass_core::extension::{Dependency, Extension, FromLib};
+
+    #[test]
+    fn file_defined_dependencies_parse_package_lock_from_child_directory() -> Result<()> {
+        let tmp_dir = tempdir::TempDir::new("thirdpass_js_file_defined_dependencies")?;
+        let project_root = tmp_dir.path();
+        let nested = project_root.join("packages").join("app");
+        std::fs::create_dir_all(&nested)?;
+
+        let package_lock_path = project_root.join("package-lock.json");
+        std::fs::write(
+            &package_lock_path,
+            serde_json::to_string_pretty(&serde_json::json!({
+                "name": "fixture-project",
+                "lockfileVersion": 1,
+                "dependencies": {
+                    "left-pad": {
+                        "version": "1.3.0"
+                    },
+                    "parent-package": {
+                        "version": "2.0.0",
+                        "dependencies": {
+                            "child-package": {
+                                "version": "3.0.0"
+                            }
+                        }
+                    },
+                    "dev-only": {
+                        "version": "0.1.0",
+                        "dev": true
+                    }
+                }
+            }))?,
+        )?;
+
+        let extension = JsExtension::new();
+        let extension_args = Vec::new();
+        let groups = extension.identify_file_defined_dependencies(&nested, &extension_args)?;
+
+        assert_eq!(groups.len(), 1);
+        assert_eq!(groups[0].path, package_lock_path);
+        assert_eq!(groups[0].registry_host_name, "npmjs.com");
+        assert_dependency(&groups[0].dependencies, "left-pad", "1.3.0");
+        assert_dependency(&groups[0].dependencies, "parent-package", "2.0.0");
+        assert_dependency(&groups[0].dependencies, "child-package", "3.0.0");
+        assert!(!has_dependency(
+            &groups[0].dependencies,
+            "dev-only",
+            "0.1.0"
+        ));
+
+        let extension_args = vec!["--dev".to_string()];
+        let groups = extension.identify_file_defined_dependencies(&nested, &extension_args)?;
+
+        assert_eq!(groups.len(), 1);
+        assert_dependency(&groups[0].dependencies, "dev-only", "0.1.0");
+        Ok(())
+    }
+
+    fn assert_dependency(dependencies: &[Dependency], name: &str, version: &str) {
+        assert!(
+            has_dependency(dependencies, name, version),
+            "expected dependency {}@{} in {:?}",
+            name,
+            version,
+            dependencies
+        );
+    }
+
+    fn has_dependency(dependencies: &[Dependency], name: &str, version: &str) -> bool {
+        dependencies
+            .iter()
+            .any(|dependency| dependency.name == name && dependency.version == Ok(version.into()))
+    }
+}
