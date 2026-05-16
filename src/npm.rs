@@ -6,15 +6,13 @@ static HOST_NAME: &str = "npmjs.com";
 /// Parse and clean package version string.
 ///
 /// Returns a structure which details common errors.
-fn get_parsed_version(
-    version: &Option<&str>,
-) -> thirdpass_core::extension::common::VersionParseResult {
+fn get_parsed_version(version: &Option<&str>) -> thirdpass_core::extension::VersionParseResult {
     if let Some(version) = version.and_then(|v| Some(v.to_string())) {
         if version != "" {
             return Ok(version);
         }
     }
-    Err(thirdpass_core::extension::common::VersionError::from_missing_version())
+    Err(thirdpass_core::extension::VersionError::from_missing_version())
 }
 
 type JsonObject = serde_json::Map<String, serde_json::Value>;
