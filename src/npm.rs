@@ -56,7 +56,7 @@ fn parse_dependencies(
 
 /// Parse dependencies from project dependencies definition file.
 pub fn get_dependencies(
-    file_path: &std::path::PathBuf,
+    file_path: &std::path::Path,
     include_dev_dependencies: bool,
 ) -> Result<Vec<thirdpass_core::extension::Dependency>> {
     let file = std::fs::File::open(file_path)?;

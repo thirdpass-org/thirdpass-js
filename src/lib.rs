@@ -38,7 +38,7 @@ impl thirdpass_core::extension::Extension for JsExtension {
         &self,
         package_name: &str,
         package_version: &Option<&str>,
-        _extension_args: &Vec<String>,
+        _extension_args: &[String],
     ) -> Result<Vec<thirdpass_core::extension::PackageDependencies>> {
         // npm install is-even@1.0.0 --package-lock-only
         let tmp_dir = tempdir::TempDir::new("thirdpass_js_identify_package_dependencies")?;
@@ -97,8 +97,8 @@ impl thirdpass_core::extension::Extension for JsExtension {
 
     fn identify_file_defined_dependencies(
         &self,
-        working_directory: &std::path::PathBuf,
-        extension_args: &Vec<String>,
+        working_directory: &std::path::Path,
+        extension_args: &[String],
     ) -> Result<Vec<thirdpass_core::extension::FileDefinedDependencies>> {
         let include_dev_dependencies = extension_args.iter().any(|v| v == "--dev");
 
@@ -241,11 +241,9 @@ struct DependencyFile {
 /// Returns a vector of identified package dependency definition files.
 ///
 /// Walks up the directory tree directory tree until the first positive result is found.
-fn identify_dependency_files(
-    working_directory: &std::path::PathBuf,
-) -> Option<Vec<DependencyFile>> {
+fn identify_dependency_files(working_directory: &std::path::Path) -> Option<Vec<DependencyFile>> {
     assert!(working_directory.is_absolute());
-    let mut working_directory = working_directory.clone();
+    let mut working_directory = working_directory.to_path_buf();
 
     loop {
         // If at least one target is found, assume package is present.
